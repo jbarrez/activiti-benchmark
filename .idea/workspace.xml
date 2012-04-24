@@ -61,10 +61,10 @@
       <file leaf-file-name="BenchmarkOuput.java" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/output/BenchmarkOuput.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="111" column="9" selection-start="4283" selection-end="4283" vertical-scroll-proportion="0.5011876">
+            <state line="106" column="43" selection-start="4058" selection-end="4058" vertical-scroll-proportion="0.2913386">
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#3380#3414#0" expanded="true" />
+                <element signature="e#3435#3469#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -82,7 +82,7 @@
       <file leaf-file-name="ThreadPooledBenchmarkExecution.java" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/execution/ThreadPooledBenchmarkExecution.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="47" column="46" selection-start="1577" selection-end="1577" vertical-scroll-proportion="0.0">
+            <state line="47" column="28" selection-start="1577" selection-end="1577" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -92,10 +92,7 @@
         <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/Benchmark.java">
           <provider selected="true" editor-type-id="text-editor">
             <state line="121" column="62" selection-start="5310" selection-end="5310" vertical-scroll-proportion="0.0">
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#1001#1018#0" expanded="true" />
-              </folding>
+              <folding />
             </state>
           </provider>
         </entry>
@@ -210,6 +207,21 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="PackagesPane">
+        <subPane>
+          <PATH>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="basic-benchmark" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewProjectNode" />
+            </PATH_ELEMENT>
+            <PATH_ELEMENT>
+              <option name="myItemId" value="basic-benchmark" />
+              <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.PackageViewModuleNode" />
+            </PATH_ELEMENT>
+          </PATH>
+        </subPane>
+      </pane>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -430,8 +442,6 @@
           </PATH>
         </subPane>
       </pane>
-      <pane id="PackagesPane" />
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -441,15 +451,16 @@
     <property name="options.splitter.main.proportions" value="0.3" />
     <property name="MemberChooser.sorted" value="false" />
     <property name="recentsLimit" value="5" />
-    <property name="options.lastSelected" value="reference.settingsdialog.IDE.editor.colors.Java" />
+    <property name="options.lastSelected" value="editor.preferences.appearance" />
     <property name="project.structure.side.proportion" value="0.2" />
     <property name="MemberChooser.copyJavadoc" value="false" />
     <property name="GoToClass.toSaveIncludeLibraries" value="false" />
+    <property name="FullScreen" value="false" />
     <property name="MemberChooser.showClasses" value="true" />
     <property name="GoToClass.includeLibraries" value="false" />
-    <property name="options.searchVisible" value="true" />
-    <property name="options.splitter.details.proportions" value="0.2" />
     <property name="dynamic.classpath" value="false" />
+    <property name="options.splitter.details.proportions" value="0.2" />
+    <property name="options.searchVisible" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
@@ -496,24 +507,6 @@
         <option name="Maven.BeforeRunTask" enabled="false" />
       </method>
     </configuration>
-    <configuration default="true" type="Applet" factoryName="Applet">
-      <module name="" />
-      <option name="MAIN_CLASS_NAME" />
-      <option name="HTML_FILE_NAME" />
-      <option name="HTML_USED" value="false" />
-      <option name="WIDTH" value="400" />
-      <option name="HEIGHT" value="300" />
-      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
-      <option name="VM_PARAMETERS" />
-      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
-      <option name="ALTERNATIVE_JRE_PATH" />
-      <method>
-        <option name="AntTarget" enabled="false" />
-        <option name="BuildArtifacts" enabled="false" />
-        <option name="Make" enabled="true" />
-        <option name="Maven.BeforeRunTask" enabled="false" />
-      </method>
-    </configuration>
     <configuration default="true" type="TestNG" factoryName="TestNG">
       <module name="" />
       <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
@@ -539,6 +532,24 @@
       <envs />
       <properties />
       <listeners />
+      <method>
+        <option name="AntTarget" enabled="false" />
+        <option name="BuildArtifacts" enabled="false" />
+        <option name="Make" enabled="true" />
+        <option name="Maven.BeforeRunTask" enabled="false" />
+      </method>
+    </configuration>
+    <configuration default="true" type="Applet" factoryName="Applet">
+      <module name="" />
+      <option name="MAIN_CLASS_NAME" />
+      <option name="HTML_FILE_NAME" />
+      <option name="HTML_USED" value="false" />
+      <option name="WIDTH" value="400" />
+      <option name="HEIGHT" value="300" />
+      <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <option name="VM_PARAMETERS" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="false" />
+      <option name="ALTERNATIVE_JRE_PATH" />
       <method>
         <option name="AntTarget" enabled="false" />
         <option name="BuildArtifacts" enabled="false" />
@@ -619,6 +630,7 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
+      <changelist id="052f9e45-2315-4a29-88e9-c100d8317146" name="Default" comment="" />
       <created>1335262637477</created>
       <updated>1335262637477</updated>
     </task>
@@ -631,22 +643,22 @@
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="JetGradle" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Palette" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3299923" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="7" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299923" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="true" content_ui="tabs" />
       <window_info id="Maven Projects" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18326531" sideWeight="0.6700077" order="1" side_tool="false" content_ui="combo" />
-      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24979591" sideWeight="0.6700077" order="5" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.18285714" sideWeight="0.6700077" order="1" side_tool="false" content_ui="combo" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299923" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="8" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3299923" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3299923" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
+      <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.24979591" sideWeight="0.6700077" order="5" side_tool="false" content_ui="combo" />
       <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
@@ -711,120 +723,87 @@
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/src/main/resources/activiti.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="29" selection-start="203" selection-end="203" vertical-scroll-proportion="0.08267716">
-          <folding />
-        </state>
+        <state line="7" column="29" selection-start="203" selection-end="203" vertical-scroll-proportion="0.08267716" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/activity/GenerateRandomValueActivity.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="14" column="46" selection-start="358" selection-end="358" vertical-scroll-proportion="0.16535433">
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
+        <state line="14" column="46" selection-start="358" selection-end="358" vertical-scroll-proportion="0.16535433" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/process01.bpmn20.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="51" selection-start="284" selection-end="284" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="5" column="51" selection-start="284" selection-end="284" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/process02.bpmn20.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/process03.bpmn20.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="0" column="0" selection-start="0" selection-end="0" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/activiti.cfg.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="13" column="0" selection-start="373" selection-end="883" vertical-scroll-proportion="0.15354331">
-          <folding />
-        </state>
+        <state line="13" column="0" selection-start="373" selection-end="883" vertical-scroll-proportion="0.15354331" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/execution/BenchmarkExecution.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="21" column="0" selection-start="654" selection-end="654" vertical-scroll-proportion="0.2480315">
-          <folding />
-        </state>
+        <state line="21" column="0" selection-start="654" selection-end="654" vertical-scroll-proportion="0.2480315" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/process04.bpmn20.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="46" column="75" selection-start="2053" selection-end="2053" vertical-scroll-proportion="0.54330707">
-          <folding />
-        </state>
+        <state line="46" column="75" selection-start="2053" selection-end="2053" vertical-scroll-proportion="0.54330707" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/resources/process05.bpmn20.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="5" column="43" selection-start="277" selection-end="277" vertical-scroll-proportion="0.05905512">
-          <folding />
-        </state>
+        <state line="5" column="43" selection-start="277" selection-end="277" vertical-scroll-proportion="0.05905512" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="57" column="8" selection-start="2018" selection-end="2150" vertical-scroll-proportion="0.6732283">
-          <folding />
-        </state>
+        <state line="57" column="8" selection-start="2018" selection-end="2150" vertical-scroll-proportion="0.6732283" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/execution/BasicBenchmarkExecution.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="58" column="50" selection-start="1832" selection-end="1833" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/execution/FixedThreadPoolBenchmarkExecution.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="7" column="87" selection-start="269" selection-end="269" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+        <state line="58" column="50" selection-start="1832" selection-end="1833" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/execution/ThreadPooledBenchmarkExecution.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="47" column="46" selection-start="1577" selection-end="1577" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/output/BenchmarkResult.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="25" column="39" selection-start="573" selection-end="573" vertical-scroll-proportion="0.0">
+        <state line="47" column="28" selection-start="1577" selection-end="1577" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/Benchmark.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="121" column="62" selection-start="5310" selection-end="5310" vertical-scroll-proportion="0.0">
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#1001#1018#0" expanded="true" />
-          </folding>
-        </state>
+        <state line="121" column="62" selection-start="5310" selection-end="5310" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/execution/FixedThreadPoolBenchmarkExecution.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="7" column="87" selection-start="269" selection-end="269" vertical-scroll-proportion="0.0" />
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/output/BenchmarkResult.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="25" column="39" selection-start="573" selection-end="573" vertical-scroll-proportion="0.0" />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/be/jorambarrez/activiti/benchmark/output/BenchmarkOuput.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="111" column="9" selection-start="4283" selection-end="4283" vertical-scroll-proportion="0.5011876">
+        <state line="106" column="43" selection-start="4058" selection-end="4058" vertical-scroll-proportion="0.2913386">
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#3380#3414#0" expanded="true" />
+            <element signature="e#3435#3469#0" expanded="true" />
           </folding>
         </state>
       </provider>

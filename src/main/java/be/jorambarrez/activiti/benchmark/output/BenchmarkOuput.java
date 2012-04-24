@@ -7,6 +7,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -101,6 +102,32 @@ public class BenchmarkOuput {
         }
 
 
+        JFreeChart chart = null;
+        if (data.size() == 1) { // only 1 series -> barchart
+            chart = generateBarChart(data);
+        } else {
+            chart = generateLineChart(data);
+        }
+
+        // Write image
+        FileOutputStream fos = null;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss_SSS");
+        String chartFileName = "chart-" + dateFormat.format(new Date()) + ".png";
+        try {
+            fos = new FileOutputStream(new File(folderName + "/" + chartFileName));
+            ChartUtilities.writeChartAsPNG(fos, chart, 800, 400);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        // Include image in html
+        strb.append("<img src=" + chartFileName + "/>");
+
+        // Empty the previous results
+        results.clear();
+    }
+
+    protected JFreeChart generateLineChart(HashMap<String, HashMap<Integer, Double>> data) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         for (String process : data.keySet()) {
             HashMap<Integer, Double> processData = data.get(process);
@@ -139,22 +166,30 @@ public class BenchmarkOuput {
         final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
 
-        // Write image
-        FileOutputStream fos = null;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss_SSS");
-        String chartFileName = "chart-" + dateFormat.format(new Date()) + ".png";
-        try {
-            fos = new FileOutputStream(new File(folderName + "/" + chartFileName));
-            ChartUtilities.writeChartAsPNG(fos, chart, 800, 400);
-        } catch (IOException e) {
-            e.printStackTrace();
+        return chart;
+    }
+
+    protected JFreeChart generateBarChart(HashMap<String, HashMap<Integer, Double>> data) {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+
+        for (String process : data.keySet()) {
+            HashMap<Integer, Double> processData = data.get(process);
+            for (Integer threads : processData.keySet()) {
+                dataset.setValue(processData.get(threads), process, threads);
+            }
         }
 
-        // Include image in html
-        strb.append("<img src=" + chartFileName + "/>");
+        JFreeChart chart = ChartFactory.createBarChart(
+                "",
+                "Threads",
+                "acg time (ms)",
+                dataset,
+                PlotOrientation.VERTICAL,
+                true,
+                true,
+                false);
 
-        // Empty the previous results
-        results.clear();
+        return chart;
     }
 
     public void writeOut() {
