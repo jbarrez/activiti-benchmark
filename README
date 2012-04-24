@@ -1,0 +1,5 @@
+Simple benchmark framework for Activiti (http://www.activiti.org).
+
+Run 'mvn clean assembly:assembly' to build the executable jar.
+
+Execute the jar to get more info about the command line params.
