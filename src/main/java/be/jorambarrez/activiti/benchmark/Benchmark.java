@@ -4,6 +4,7 @@ import be.jorambarrez.activiti.benchmark.execution.*;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkOuput;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
 import org.activiti.engine.ProcessEngine;
+import org.activiti.engine.ProcessEngineConfiguration;
 import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.util.LogUtil;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
@@ -60,9 +61,10 @@ public class Benchmark {
 
   private static ProcessEngine getProcessEngine(String configuration) {
         if (configuration.equals("default")) {
-            return StandaloneProcessEngineConfiguration
-                    .createProcessEngineConfigurationFromResource("activiti.cfg.xml")
-                    .buildProcessEngine();
+            // Not doing the 'official way' here, but it is needed if we want the property resolving to work
+            ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("activiti.cfg.xml");
+            ProcessEngineConfiguration processEngineConfiguration = appCtx.getBean(ProcessEngineConfiguration.class);
+            return processEngineConfiguration.buildProcessEngine();
         } else if (configuration.equals("spring")) {
             ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("spring-context.xml");
             return appCtx.getBean(ProcessEngine.class);
@@ -136,7 +138,17 @@ public class Benchmark {
       // length check
       if (args.length != 4) {
           System.err.println("Wrong number of arguments");
-          System.err.println("Usage: java -Xms512M -XmX1024M -jar activiti-basic-benchmark.jar " + "<default|spring> <history|no-history> <nr_of_executions> <max_nr_of_threads_in_threadpool>");
+          System.err.println("Usage: java -Xms512M -Xmx1024M -jar activiti-basic-benchmark.jar " + "<default|spring> <history|no-history> <nr_of_executions> <max_nr_of_threads_in_threadpool> -D{options}={value}");
+          System.err.println();
+          System.err.println("Options:");
+          System.err.println("-DjdbcUrl={value}");
+          System.err.println("-DjdbcDriver={value}");
+          System.err.println("-DjdbcUsername={value}");
+          System.err.println("-DjdbcPassword={value}");
+          System.err.println("-DjdbcMaxActiveConnections={value}");
+          System.err.println("-DjdbcMaxIdleConnections={value}");
+          System.err.println();
+          System.err.println();
           return false;
       }
 
