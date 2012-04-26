@@ -7,8 +7,8 @@ import java.util.concurrent.Executors;
 
 public class CachedThreadPoolBenchmarkExecution extends ThreadPooledBenchmarkExecution {
 	
-	public CachedThreadPoolBenchmarkExecution(ProcessEngine processEngine) {
-		super(processEngine);
+	public CachedThreadPoolBenchmarkExecution(ProcessEngine processEngine, String[] processes) {
+		super(processEngine, processes);
 	}
 	
 	protected ExecutorService getExecutorService() {

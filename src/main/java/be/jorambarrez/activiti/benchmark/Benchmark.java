@@ -64,6 +64,11 @@ public class Benchmark {
             // Not doing the 'official way' here, but it is needed if we want the property resolving to work
             ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("activiti.cfg.xml");
             ProcessEngineConfiguration processEngineConfiguration = appCtx.getBean(ProcessEngineConfiguration.class);
+
+            System.out.println("[Process engine configuration info]:");
+            System.out.println("url : " + processEngineConfiguration.getJdbcUrl());
+            System.out.println("driver : " + processEngineConfiguration.getJdbcDriver());
+
             return processEngineConfiguration.buildProcessEngine();
         } else if (configuration.equals("spring")) {
             ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("spring-context.xml");
@@ -82,7 +87,7 @@ public class Benchmark {
 
         // Single thread benchmark
         System.out.println(new Date() + " - benchmarking with one thread.");
-        BenchmarkExecution singleThreadBenchmark = new BasicBenchmarkExecution(processEngine);
+        BenchmarkExecution singleThreadBenchmark = new BasicBenchmarkExecution(processEngine, PROCESSES);
         fixedPoolSequentialResults.add(singleThreadBenchmark.sequentialExecution(PROCESSES, nrOfProcessExecutions, history));
         fixedPoolRandomResults.add(singleThreadBenchmark.randomExecution(PROCESSES, nrOfProcessExecutions, history));
 
@@ -90,7 +95,7 @@ public class Benchmark {
         for (int nrOfWorkerThreads = 2; nrOfWorkerThreads <= maxNrOfThreadsInThreadPool; nrOfWorkerThreads++) {
 
             System.out.println(new Date() + " - benchmarking with fixed threadpool of " + nrOfWorkerThreads + " threads.");
-            BenchmarkExecution fixedPoolBenchMark = new FixedThreadPoolBenchmarkExecution(processEngine, nrOfWorkerThreads);
+            BenchmarkExecution fixedPoolBenchMark = new FixedThreadPoolBenchmarkExecution(processEngine, nrOfWorkerThreads, PROCESSES);
             fixedPoolSequentialResults.add(fixedPoolBenchMark.sequentialExecution(PROCESSES, nrOfProcessExecutions, history));
             fixedPoolRandomResults.add(fixedPoolBenchMark.randomExecution(PROCESSES, nrOfProcessExecutions, history));
 
@@ -135,10 +140,17 @@ public class Benchmark {
    */
   private static boolean validateParams(String[] args) {
 
+      int nrOfArgs = 0;
+      for (String arg : args) {
+          if (!arg.startsWith("-D")) {
+              nrOfArgs++;
+          }
+      }
+
       // length check
-      if (args.length != 4) {
+      if (nrOfArgs != 4) {
           System.err.println("Wrong number of arguments");
-          System.err.println("Usage: java -Xms512M -Xmx1024M -jar activiti-basic-benchmark.jar " + "<default|spring> <history|no-history> <nr_of_executions> <max_nr_of_threads_in_threadpool> -D{options}={value}");
+          System.err.println("Usage: java -Xms512M -Xmx1024M -D{options}={value} -jar activiti-basic-benchmark.jar " + "<default|spring> <history|no-history> <nr_of_executions> <max_nr_of_threads_in_threadpool> ");
           System.err.println();
           System.err.println("Options:");
           System.err.println("-DjdbcUrl={value}");

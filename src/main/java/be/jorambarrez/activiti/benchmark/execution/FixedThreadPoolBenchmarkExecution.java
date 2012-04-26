@@ -7,8 +7,8 @@ import java.util.concurrent.Executors;
 
 public class FixedThreadPoolBenchmarkExecution extends ThreadPooledBenchmarkExecution {
 	
-	public FixedThreadPoolBenchmarkExecution(ProcessEngine processEngine, int nrOfWorkerThreads) {
-		super(processEngine);
+	public FixedThreadPoolBenchmarkExecution(ProcessEngine processEngine, int nrOfWorkerThreads, String[] processes) {
+		super(processEngine, processes);
 		this.nrOfWorkerThreads = nrOfWorkerThreads;		
 	}
 	
