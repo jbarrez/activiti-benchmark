@@ -61,6 +61,7 @@ public class Benchmark {
 
   private static ProcessEngine getProcessEngine(String configuration) {
         if (configuration.equals("default")) {
+            System.out.println("Using DEFAULT config");
             // Not doing the 'official way' here, but it is needed if we want the property resolving to work
             ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("activiti.cfg.xml");
             ProcessEngineConfiguration processEngineConfiguration = appCtx.getBean(ProcessEngineConfiguration.class);
@@ -71,6 +72,7 @@ public class Benchmark {
 
             return processEngineConfiguration.buildProcessEngine();
         } else if (configuration.equals("spring")) {
+            System.out.println("Using SPRING config");
             ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("spring-context.xml");
             return appCtx.getBean(ProcessEngine.class);
         }

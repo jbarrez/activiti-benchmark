@@ -111,25 +111,20 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
         HistoryService historyService = processEngine.getHistoryService();
         System.out.println(new Date() + " : Removing " + historyService.createHistoricProcessInstanceQuery().count() + " historic process instances");
         List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
+        int processesDeleted = 0;
         while (processInstances.size() > 0) {
             for (HistoricProcessInstance historicProcessInstance : processInstances) {
                 historyService.deleteHistoricProcessInstance(historicProcessInstance.getId());
+                processesDeleted++;
             }
+
+            if (processesDeleted % 500 == 0) {
+                System.out.println("Deleted " + processesDeleted + " processes");
+            }
+
             processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
         }
 
-//        ((ProcessEngineImpl) processEngine)
-//                .getProcessEngineConfiguration()
-//                .getCommandExecutorTxRequired()
-//                .execute(new Command<Object>() {
-//                    public Object execute(CommandContext commandContext) {
-//                        DbSqlSession dbSqlSession = commandContext.getSession(DbSqlSession.class);
-//                        dbSqlSession.dbSchemaDrop();
-//                        dbSqlSession.dbSchemaCreate();
-//                        return null;
-//                    }
-//                });
-//
         long count = countNrOfEndedProcesses();
         if (count != 0) {
             throw new RuntimeException("Recreating DB schema failed: found " + count + " historic process instances");

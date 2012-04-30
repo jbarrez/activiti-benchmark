@@ -47,9 +47,34 @@
             <version>3.0.3.RELEASE</version>
         </dependency>
         <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-orm</artifactId>
+            <version>3.0.3.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.3</version>
+        </dependency>
+        <dependency>
             <groupId>commons-dbcp</groupId>
             <artifactId>commons-dbcp</artifactId>
             <version>1.4</version>
+        </dependency>
+        <dependency>
+            <groupId>c3p0</groupId>
+            <artifactId>c3p0</artifactId>
+            <version>0.9.1.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.jolbox</groupId>
+            <artifactId>bonecp</artifactId>
+            <version>0.7.1.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.6.4</version>
         </dependency>
         <dependency>
             <groupId>jfree</groupId>
@@ -65,46 +90,40 @@
         </repository>
     </repositories>
 
-    <!-- To build jar, use mvn assembly:assembly -->
+    <!-- To build jar, use mvn clean package shade:shade -->
     <build>
         <pluginManagement>
             <plugins>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-compiler-plugin</artifactId>
-                    <configuration>
-                        <source>1.6</source>
-                        <target>1.6</target>
-                    </configuration>
-                </plugin>
-                <plugin>
-                    <artifactId>maven-assembly-plugin</artifactId>
+                    <artifactId>maven-shade-plugin</artifactId>
+                    <version>1.6</version>
                     <configuration>
                         <finalName>activiti-basic-benchmark</finalName>
-                        <appendAssemblyId>false</appendAssemblyId>
-                        <descriptorRefs>
-                            <descriptorRef>jar-with-dependencies</descriptorRef>
-                        </descriptorRefs>
-                        <archive>
-                            <manifest>
-                                <addClasspath>true</addClasspath>
+                        <transformers>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                 <mainClass>be.jorambarrez.activiti.benchmark.Benchmark</mainClass>
-                            </manifest>
-                            <manifestEntries>
-                                <Class-Path>.</Class-Path>
-                            </manifestEntries>
-                        </archive>
+                            </transformer>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/spring.handlers</resource>
+                            </transformer>
+                            <transformer
+                                    implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+                                <resource>META-INF/spring.schemas</resource>
+                            </transformer>
+                        </transformers>
                     </configuration>
                     <executions>
                         <execution>
-                            <id>make-assembly</id>
-                            <!-- this is used for inheritance merges -->
                             <phase>package</phase>
-                            <!-- append to the packaging phase. -->
                             <goals>
-                                <goal>single</goal>
-                                <!-- goals == mojos -->
+                                <goal>shade</goal>
                             </goals>
+                            <configuration>
+
+                            </configuration>
                         </execution>
                     </executions>
                 </plugin>
