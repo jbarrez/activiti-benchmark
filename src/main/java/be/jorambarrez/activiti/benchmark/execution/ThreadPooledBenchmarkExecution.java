@@ -23,22 +23,17 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
 
         countProcessesBeforeBenchmark();
         BenchmarkResult result = new BenchmarkResult(nrOfWorkerThreads);
-
+        ExecutionTime totalTime;
+        
         for (String process : processes) {
-
             final String currentProcess = process;
+            totalTime = new ExecutionTime();
+            
             System.out.println(new Date() + " : [SEQ]Starting " + nrOfProcessExecutions + " of process " + currentProcess);
             ExecutorService executorService = getExecutorService();
 
-            long start = System.currentTimeMillis();
             for (int i = 0; i < nrOfProcessExecutions; i++) {
-
-                executorService.execute(new Runnable() {
-
-                    public void run() {
-                        runtimeService.startProcessInstanceByKey(currentProcess);
-                    }
-                });
+                executorService.execute(new ExecuteProcessRunnable(process, processEngine, totalTime));
             }
 
             try {
@@ -48,8 +43,7 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
                 e.printStackTrace();
             }
 
-            long end = System.currentTimeMillis();
-            result.addProcessMeasurement(process, nrOfProcessExecutions, end - start);
+            result.addProcessMeasurement(process, nrOfProcessExecutions, totalTime.getExecutionTime());
         }
 
         if (history) {

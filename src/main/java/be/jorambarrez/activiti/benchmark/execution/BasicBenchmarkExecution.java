@@ -1,20 +1,17 @@
 package be.jorambarrez.activiti.benchmark.execution;
 
-import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
-import be.jorambarrez.activiti.benchmark.util.Utils;
+import java.util.Date;
+import java.util.List;
+
 import org.activiti.engine.HistoryService;
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.impl.ProcessEngineImpl;
-import org.activiti.engine.impl.db.DbSqlSession;
-import org.activiti.engine.impl.interceptor.Command;
-import org.activiti.engine.impl.interceptor.CommandContext;
 import org.activiti.engine.repository.Deployment;
 
-import java.util.Date;
-import java.util.List;
+import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
+import be.jorambarrez.activiti.benchmark.util.Utils;
 
 /**
  * Basic way of running the benchmark: 1 thread, sequentially executing the
@@ -45,23 +42,23 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
         countProcessesBeforeBenchmark();
         BenchmarkResult result = new BenchmarkResult(1);
 
+        ExecutionTime totalTime;
         for (String process : processes) {
+            totalTime = new ExecutionTime();
+            
             System.out.println(new Date() + " : [SEQ]Starting " + nrOfProcessExecutions + " of process " + process);
-            long start = System.currentTimeMillis();
-
+                       
             for (int i = 0; i < nrOfProcessExecutions; i++) {
-                runtimeService.startProcessInstanceByKey(process);
+                new ExecuteProcessRunnable(process, processEngine, totalTime).run();
             }
 
-            long end = System.currentTimeMillis();
-            result.addProcessMeasurement(process, nrOfProcessExecutions, end - start);
+            result.addProcessMeasurement(process, nrOfProcessExecutions, totalTime.getExecutionTime());
         }
 
         if (history) {
             countProcessesAfterBenchmark();
             verifyCounts(nrOfProcessExecutions * processes.length);
         }
-
 
         cleanAndDeploy();
         return result;
