@@ -3,18 +3,28 @@ package be.jorambarrez.activiti.benchmark;
 import be.jorambarrez.activiti.benchmark.execution.*;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkOuput;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
+import be.jorambarrez.activiti.benchmark.execution.*;
+import be.jorambarrez.activiti.benchmark.output.BenchmarkOuput;
+import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
 import be.jorambarrez.activiti.benchmark.profiling.ProfilingInterceptor;
 import be.jorambarrez.activiti.benchmark.profiling.ProfilingLogParser;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
 import org.activiti.engine.ProcessEngine;
 import org.activiti.engine.ProcessEngineConfiguration;
+import org.activiti.engine.impl.cfg.StandaloneProcessEngineConfiguration;
 import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
 import org.activiti.engine.impl.interceptor.CommandInterceptor;
 import org.activiti.engine.impl.util.LogUtil;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import be.jorambarrez.activiti.benchmark.execution.BasicBenchmarkExecution;
+import be.jorambarrez.activiti.benchmark.execution.BenchmarkExecution;
+import be.jorambarrez.activiti.benchmark.execution.FixedThreadPoolBenchmarkExecution;
+import be.jorambarrez.activiti.benchmark.output.BenchmarkOuput;
+import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
 
 /**
  * Main class that contains the logic to execute the benchmark.
@@ -32,7 +42,8 @@ public class Benchmark {
     "process02", 
     "process03", 
     "process04", 
-    "process05" 
+    "process05", 
+    "process06" 
   };
   
   private static int maxNrOfThreadsInThreadPool;

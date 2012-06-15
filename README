@@ -1,5 +1,7 @@
 Simple benchmark framework for Activiti (http://www.activiti.org).
 
-Run 'mvn clean assembly:assembly' to build the executable jar.
+Run 'mvn clean package shade:shade' to build the executable jar.
 
 Execute the jar to get more info about the command line params.
+
+You can pass db connection params as system properties: -DjdbcUrl | -DjdbcDriver | -DjdbcUsername | -DjdbcPassword
