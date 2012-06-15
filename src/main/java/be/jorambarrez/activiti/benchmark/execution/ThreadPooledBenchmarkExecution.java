@@ -49,15 +49,17 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
             }
 
             long end = System.currentTimeMillis();
+
             result.addProcessMeasurement(process, nrOfProcessExecutions, end - start);
+            if (history) {
+                countProcessesAfterBenchmark();
+                verifyCounts(nrOfProcessExecutions);
+            }
+            cleanAndDeploy();
+
         }
 
-        if (history) {
-            countProcessesAfterBenchmark();
-            verifyCounts(nrOfProcessExecutions * processes.length);
-        }
 
-        cleanAndDeploy();
         return result;
     }
 
@@ -66,6 +68,7 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
         countProcessesBeforeBenchmark();
         BenchmarkResult result = new BenchmarkResult(nrOfWorkerThreads);
         final String[] randomizedProcesses = Utils.randomArray(processes, totalNrOfExecutions);
+        result.setRandomizedProcesses(randomizedProcesses);
 
         ExecutorService executorService = getExecutorService();
         System.out.println(new Date() + ": [RND]Starting " + totalNrOfExecutions + " random processes");

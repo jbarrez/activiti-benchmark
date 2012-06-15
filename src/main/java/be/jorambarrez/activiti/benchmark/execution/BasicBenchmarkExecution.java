@@ -15,6 +15,9 @@ import org.activiti.engine.repository.Deployment;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Basic way of running the benchmark: 1 thread, sequentially executing the
@@ -55,15 +58,14 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
 
             long end = System.currentTimeMillis();
             result.addProcessMeasurement(process, nrOfProcessExecutions, end - start);
+
+            if (history) {
+                countProcessesAfterBenchmark();
+                verifyCounts(nrOfProcessExecutions);
+            }
+            cleanAndDeploy();
         }
 
-        if (history) {
-            countProcessesAfterBenchmark();
-            verifyCounts(nrOfProcessExecutions * processes.length);
-        }
-
-
-        cleanAndDeploy();
         return result;
     }
 
@@ -73,23 +75,23 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
         BenchmarkResult result = new BenchmarkResult(1);
 
         String[] randomizedProcesses = Utils.randomArray(processes, totalNrOfExecutions);
+        result.setRandomizedProcesses(randomizedProcesses);
+
         System.out.println(new Date() + " : [RND]Starting " + totalNrOfExecutions + " random processes ");
-
         long start = System.currentTimeMillis();
-
         for (String randomProcess : randomizedProcesses) {
             runtimeService.startProcessInstanceByKey(randomProcess);
         }
-
         long end = System.currentTimeMillis();
+
         result.addProcessMeasurement(Utils.toString(processes), totalNrOfExecutions, end - start);
 
         if (history) {
             countProcessesAfterBenchmark();
             verifyCounts(totalNrOfExecutions);
         }
-
         cleanAndDeploy();
+
         return result;
     }
 
@@ -102,28 +104,33 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
     protected void cleanAndDeploy() {
         System.out.println(new Date() + " : Removing deployments");
 
-        RepositoryService repositoryService = processEngine.getRepositoryService();
+        final RepositoryService repositoryService = processEngine.getRepositoryService();
         List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
-        for (Deployment deployment : deployments) {
-            repositoryService.deleteDeployment(deployment.getId(), true);
+        for (final Deployment deployment : deployments) {
+                    repositoryService.deleteDeployment(deployment.getId(), true);
+
         }
 
         HistoryService historyService = processEngine.getHistoryService();
-        System.out.println(new Date() + " : Removing " + historyService.createHistoricProcessInstanceQuery().count() + " historic process instances");
-        List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
-        int processesDeleted = 0;
-        while (processInstances.size() > 0) {
-            for (HistoricProcessInstance historicProcessInstance : processInstances) {
-                historyService.deleteHistoricProcessInstance(historicProcessInstance.getId());
-                processesDeleted++;
-            }
+        long processInstanceCount = historyService.createHistoricProcessInstanceQuery().count();
+        if (processInstanceCount > 0) {
+            System.out.println(new Date() + " : Removing " + processInstanceCount + " historic process instances");
+            List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
+            int processesDeleted = 0;
+            while (processInstances.size() > 0) {
+                for (HistoricProcessInstance historicProcessInstance : processInstances) {
+                    historyService.deleteHistoricProcessInstance(historicProcessInstance.getId());
+                    processesDeleted++;
+                }
 
-            if (processesDeleted % 500 == 0) {
-                System.out.println("Deleted " + processesDeleted + " processes");
-            }
+                if (processesDeleted % 500 == 0) {
+                    System.out.println("Deleted " + processesDeleted + " processes");
+                }
 
-            processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
+                processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
+            }
         }
+
 
         long count = countNrOfEndedProcesses();
         if (count != 0) {

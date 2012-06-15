@@ -13,14 +13,14 @@ import java.util.TreeSet;
  * @author jbarrez
  */
 public class BenchmarkResult {
-	 
-	private Set<String> processes;
-	
-	private Map<String, Long> totalTimeMap;
-	
-	private Map<String, Integer> nrOfExecutionsMap;
 
     private int nrOfThreads;
+	private Set<String> processes;
+	private Map<String, Long> totalTimeMap;
+	private Map<String, Integer> nrOfExecutionsMap;
+
+    private boolean processesRandomized;
+    private Map<String, Integer> randomizedProcessesExecutionCounts;
 	
 	public BenchmarkResult(int nrOfThreads) {
         this.nrOfThreads = nrOfThreads;
@@ -53,8 +53,38 @@ public class BenchmarkResult {
         return Math.round(average * 100.0) / 100.0; // round on 2 nrs
     }
 
+    public double getThroughputPerSecond(String process) {
+        double throughput = 1000.0 / getAverage(process);
+        return Math.round(throughput * 100.0) / 100.0; // round on 2 nrs
+    }
+
+    public double getThroughputPerHour(String process) {
+        double throughput = 3600000.0 / getAverage(process);
+        return Math.round(throughput * 100.0) / 100.0; // round on 2 nrs
+    }
+
     public int getNrOfThreads() {
         return nrOfThreads;
+    }
+
+    public boolean processesRandomized() {
+        return processesRandomized;
+    }
+
+    public void setRandomizedProcesses(String[] processes) {
+        processesRandomized = true;
+        randomizedProcessesExecutionCounts = new HashMap<String, Integer>();
+
+        for (String process : processes) {
+            if (!randomizedProcessesExecutionCounts.containsKey(process)) {
+                randomizedProcessesExecutionCounts.put(process, 0);
+            }
+            randomizedProcessesExecutionCounts.put(process, randomizedProcessesExecutionCounts.get(process) + 1);
+        }
+    }
+
+    public Map<String, Integer> getRandomizedProcessesExecutionCounts() {
+        return randomizedProcessesExecutionCounts;
     }
 
 }

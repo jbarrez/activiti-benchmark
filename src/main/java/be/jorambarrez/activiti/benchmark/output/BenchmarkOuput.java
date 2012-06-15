@@ -19,6 +19,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Map;
 
 
 public class BenchmarkOuput {
@@ -63,25 +64,38 @@ public class BenchmarkOuput {
         strb.append("<table class='minimalist'>");
         strb.append("<thead><tr>");
         strb.append("<th scope='col'>PROCESS</th><th scope='col'>NR OF EXECUTIONS</th>" +
-                "<th scope='col'>TOTAL TIME (ms)</th><th scope='col'>AVERAGE (ms)</th></tr>");
+                "<th scope='col'>TOTAL TIME (ms)</th><th scope='col'>AVERAGE (ms)</th>" +
+                "<th scope='col'>THROUGHPUT/SEC</th><th scope='col'>THROUGHPUT/HOUR</th></tr>");
         strb.append("</tr></thead>");
 
         for (String process : benchmarkResult.getProcesses()) {
             strb.append("<tr>");
             strb.append("<td>" + process + "</td>");
 
-            int nrOfExecutions = benchmarkResult.getNrOfExecutions(process);
-            long totalTime = benchmarkResult.getTotalTime(process);
-            double average = benchmarkResult.getAverage(process);
 
-            strb.append("<td>" + nrOfExecutions + "</td>");
-            strb.append("<td>" + totalTime + "</td>");
-            strb.append("<td>" + average + "</td>");
+            strb.append("<td align='center'>" + benchmarkResult.getNrOfExecutions(process) + "</td>");
+            strb.append("<td>" + benchmarkResult.getTotalTime(process) + "</td>");
+            strb.append("<td>" + benchmarkResult.getAverage(process) + "</td>");
+            strb.append("<td align='right'>" + benchmarkResult.getThroughputPerSecond(process) + "</td>");
+            strb.append("<td align='right'>" + benchmarkResult.getThroughputPerHour(process) + "</td>");
 
             strb.append("</tr>");
         }
 
         strb.append("</table>");
+
+
+        if (benchmarkResult.processesRandomized()) {
+            strb.append("<br/>");
+            strb.append("<h3>Process runs</h3><hr/>");
+            strb.append("<ul>");
+            Map<String, Integer> processCounts = benchmarkResult.getRandomizedProcessesExecutionCounts();
+            for (String process : processCounts.keySet()) {
+                strb.append("<li>" + process + " : " + processCounts.get(process) + " executions</li>");
+            }
+            strb.append("</ul>");
+            strb.append("<br/>");
+        }
     }
 
     /**

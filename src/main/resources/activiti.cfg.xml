@@ -17,14 +17,15 @@
         <property name="jdbcDriver" value="${jdbcDriver}" />
         <property name="jdbcUsername" value="${jdbcUsername}" />
         <property name="jdbcPassword" value="${jdbcPassword}" />
+        <property name="history" value="${history}" />
 
         <property name="jdbcMaxActiveConnections" value="${jdbcMaxActiveConnections}" />
         <property name="jdbcMaxIdleConnections" value="${jdbcMaxIdleConnections}" />
 
         <property name="databaseSchemaUpdate" value="true" />
-
         <property name="jobExecutorActivate" value="false" />
 
+        <property name="idBlockSize" value="5000" />
     </bean>
 
 </beans>
