@@ -13,78 +13,73 @@
 
 package be.jorambarrez.activiti.benchmark.profiling;
 
-
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Field;
-import java.util.logging.FileHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import org.activiti.engine.impl.interceptor.Command;
 import org.activiti.engine.impl.interceptor.CommandInterceptor;
 import org.activiti.engine.impl.util.ClassNameUtil;
-
 
 /**
  * A simple profiling interceptor, written just for the fun of it.
  * 
  * Add the following to your Spring config:
  * 
- * <property name="customPreCommandInterceptorsTxRequired">
- *    <list>
- *      <bean class="org.activiti.explorer.experimental.ProfilingInterceptor" />
- *    </list>
+ * <property name="customPreCommandInterceptorsTxRequired"> <list> <bean
+ * class="org.activiti.explorer.experimental.ProfilingInterceptor" /> </list>
  * </property>
  * 
  * @author Joram Barrez
  */
 public class ProfilingInterceptor extends CommandInterceptor {
-  
-  protected static final Logger LOGGER = Logger.getLogger(ProfilingInterceptor.class.getName());
-  
-  public ProfilingInterceptor() {
-    try {
-      LOGGER.setLevel(Level.INFO);
-      FileHandler fileHandler = new FileHandler("profiling.log");
-      LOGGER.addHandler(fileHandler);
-    } catch (SecurityException e) {
-      e.printStackTrace();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-  }
-  
-  public <T> T execute(Command<T> command) {
-    long start = System.currentTimeMillis();
-    T result = next.execute(command);
-    long end = System.currentTimeMillis();
-    LOGGER.info(ClassNameUtil.getClassNameWithoutPackage(command) 
-            + ":" + (end-start)
-            + ":" + readMemberFields(command));
-    return result;
-  }
-  
-  protected String readMemberFields(Command command) {
-    StringBuilder strb = new StringBuilder();
-    Field[] fields = command.getClass().getDeclaredFields();
-    for (Field field : fields) {
-      field.setAccessible(true);
-      try {
-        strb.append(field.getName());
-        strb.append("=");
-        strb.append(field.get(command) + ", ");
-      } catch (IllegalArgumentException e) {
-        e.printStackTrace();
-      } catch (IllegalAccessException e) {
-        e.printStackTrace();
-      }
-    }
-    
-    if (strb.length() > 0) {
-      strb.delete(strb.length()-2, strb.length());
-    }
-    
-    return strb.toString();
-  }
+	
+	public static PrintWriter fileWriter;
+	
+	public ProfilingInterceptor() {
+		try {
+			// There should be only one
+			synchronized (this) {
+				ProfilingInterceptor.fileWriter = 
+						new PrintWriter(new BufferedWriter(new FileWriter("profiling.log")));				
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public <T> T execute(Command<T> command) {
+		long start = System.currentTimeMillis();
+		T result = next.execute(command);
+		long end = System.currentTimeMillis();
+		fileWriter.println(ClassNameUtil.getClassNameWithoutPackage(command) + ":"
+				+ (end - start) + ":" + readMemberFields(command));
+		return result;
+	}
+
+	protected String readMemberFields(Command command) {
+		StringBuilder strb = new StringBuilder();
+		Field[] fields = command.getClass().getDeclaredFields();
+		for (Field field : fields) {
+			field.setAccessible(true);
+			try {
+				strb.append(field.getName());
+				strb.append("=");
+				strb.append(field.get(command) + ", ");
+			} catch (IllegalArgumentException e) {
+				e.printStackTrace();
+			} catch (IllegalAccessException e) {
+				e.printStackTrace();
+			}
+		}
+
+		if (strb.length() > 0) {
+			strb.delete(strb.length() - 2, strb.length());
+		}
+
+		return strb.toString();
+	}
 
 }

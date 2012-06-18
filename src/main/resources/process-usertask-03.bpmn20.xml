@@ -6,7 +6,7 @@
   typeLanguage="http://www.w3.org/2001/XMLSchema"
   targetNamespace="http://www.activiti.org/bpmn2.0">
 
-  <process id="process06">
+  <process id="process-usertask-03">
   
     <startEvent id="theStart" />
     <sequenceFlow id="flow1" sourceRef="theStart" targetRef="fork" />

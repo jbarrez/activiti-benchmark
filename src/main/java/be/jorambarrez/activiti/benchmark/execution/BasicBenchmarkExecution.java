@@ -42,17 +42,19 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
         countProcessesBeforeBenchmark();
         BenchmarkResult result = new BenchmarkResult(1);
 
-        ExecutionTime totalTime;
         for (String process : processes) {
-            totalTime = new ExecutionTime();
             
-            System.out.println(new Date() + " : [SEQ]Starting " + nrOfProcessExecutions + " of process " + process);
+        	System.out.println(new Date() + " : [SEQ]Starting " + nrOfProcessExecutions + " of process " + process);
+            long allProcessesStart = System.currentTimeMillis();
                        
             for (int i = 0; i < nrOfProcessExecutions; i++) {
-                new ExecuteProcessRunnable(process, processEngine, totalTime).run();
+                ExecuteProcessRunnable executeProcessRunnable = new ExecuteProcessRunnable(process, processEngine);
+                executeProcessRunnable.run();
+                result.addProcessInstanceMeasurement(process, executeProcessRunnable.getDuration());
             }
-
-            result.addProcessMeasurement(process, nrOfProcessExecutions, totalTime.getExecutionTime());
+            
+            long allProcessesEnd = System.currentTimeMillis();
+            result.addTotalTimeMeasurementForProcess(process, nrOfProcessExecutions, allProcessesEnd - allProcessesStart);
         }
 
         if (history) {
@@ -72,14 +74,14 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
         String[] randomizedProcesses = Utils.randomArray(processes, totalNrOfExecutions);
         System.out.println(new Date() + " : [RND]Starting " + totalNrOfExecutions + " random processes ");
 
-        long start = System.currentTimeMillis();
+        long allProcessesStart = System.currentTimeMillis();
 
         for (String randomProcess : randomizedProcesses) {
-            runtimeService.startProcessInstanceByKey(randomProcess);
+        	 new ExecuteProcessRunnable(randomProcess, processEngine).run();
         }
 
-        long end = System.currentTimeMillis();
-        result.addProcessMeasurement(Utils.toString(processes), totalNrOfExecutions, end - start);
+        long allProcessesEnd = System.currentTimeMillis();
+        result.addTotalTimeMeasurementForProcess(Utils.toString(processes), totalNrOfExecutions, allProcessesEnd - allProcessesStart);
 
         if (history) {
             countProcessesAfterBenchmark();
@@ -156,7 +158,7 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
      * Counts the nr of ended processes.
      */
     private long countNrOfEndedProcesses() {
-        return processEngine.getHistoryService().createHistoricProcessInstanceQuery().count();
+        return processEngine.getHistoryService().createHistoricProcessInstanceQuery().finished().count();
     }
 
 }

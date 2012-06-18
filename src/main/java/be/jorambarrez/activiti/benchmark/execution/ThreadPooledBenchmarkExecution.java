@@ -4,6 +4,7 @@ import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
 import be.jorambarrez.activiti.benchmark.util.Utils;
 import org.activiti.engine.ProcessEngine;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -23,17 +24,18 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
 
         countProcessesBeforeBenchmark();
         BenchmarkResult result = new BenchmarkResult(nrOfWorkerThreads);
-        ExecutionTime totalTime;
         
-        for (String process : processes) {
-            final String currentProcess = process;
-            totalTime = new ExecutionTime();
+        for (String currentProcess : processes) {
             
             System.out.println(new Date() + " : [SEQ]Starting " + nrOfProcessExecutions + " of process " + currentProcess);
             ExecutorService executorService = getExecutorService();
+            ArrayList<ExecuteProcessRunnable> processExecutions = new ArrayList<ExecuteProcessRunnable>(nrOfProcessExecutions);
 
+            long allProcessesStart = System.currentTimeMillis();
             for (int i = 0; i < nrOfProcessExecutions; i++) {
-                executorService.execute(new ExecuteProcessRunnable(process, processEngine, totalTime));
+            	ExecuteProcessRunnable executeProcessRunnable = new ExecuteProcessRunnable(currentProcess, processEngine);
+            	processExecutions.add(executeProcessRunnable);
+                executorService.execute(executeProcessRunnable);
             }
 
             try {
@@ -42,8 +44,14 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
-            result.addProcessMeasurement(process, nrOfProcessExecutions, totalTime.getExecutionTime());
+            
+            long allProcessesEnd = System.currentTimeMillis();
+            result.addTotalTimeMeasurementForProcess(currentProcess, nrOfProcessExecutions, allProcessesEnd - allProcessesStart);
+            
+            System.out.println("Processing process execution durations ...");
+            for (ExecuteProcessRunnable processExecution : processExecutions) {
+            	result.addProcessInstanceMeasurement(currentProcess, processExecution.getDuration());
+            }
         }
 
         if (history) {
@@ -64,17 +72,9 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
         ExecutorService executorService = getExecutorService();
         System.out.println(new Date() + ": [RND]Starting " + totalNrOfExecutions + " random processes");
 
-        long start = System.currentTimeMillis();
+        long allProcessesStart = System.currentTimeMillis();
         for (int i = 0; i < randomizedProcesses.length; i++) {
-
-            final String randomProcess = randomizedProcesses[i];
-            executorService.execute(new Runnable() {
-
-                public void run() {
-                    runtimeService.startProcessInstanceByKey(randomProcess);
-                }
-            });
-
+        	  executorService.execute(new ExecuteProcessRunnable(randomizedProcesses[i], processEngine));
         }
 
         try {
@@ -84,13 +84,15 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
             e.printStackTrace();
         }
 
-        long end = System.currentTimeMillis();
-        result.addProcessMeasurement(Utils.toString(processes), totalNrOfExecutions, end - start);
+        long allProcessesEnd = System.currentTimeMillis();
+        result.addTotalTimeMeasurementForProcess(Utils.toString(processes), totalNrOfExecutions, allProcessesEnd - allProcessesStart);
 
         if (history) {
             countProcessesAfterBenchmark();
             verifyCounts(totalNrOfExecutions);
         }
+        
+        result.setRandomizedProcesses(randomizedProcesses);
 
         cleanAndDeploy();
         return result;

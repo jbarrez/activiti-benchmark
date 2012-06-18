@@ -1,5 +1,18 @@
 package be.jorambarrez.activiti.benchmark.output;
 
+import java.awt.Color;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
@@ -8,18 +21,8 @@ import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-
-import java.awt.*;
-import java.io.*;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 
 public class BenchmarkOuput {
@@ -54,6 +57,16 @@ public class BenchmarkOuput {
                 + "</style>");
         strb.append("<img src='http://activiti.org/images/activiti_logo.png' />");
         strb.append("<h2>" + outputTitle + "</h2>");
+        
+        strb.append("<h3>Legenda</h3><hr/>");
+        strb.append("<ul>");
+        strb.append("<li><b>PROCESS</b>: The name of the process that was executed</li>");
+        strb.append("<li><b>NR OF EXECUTIONS</b>: The amount of times this process was ran</li>");
+        strb.append("<li><b>TOTAL TIME</b>: the amount of milliseconds it took to run 'NR OF EXECUTIONS' instances from start to end of this process</li>");
+        strb.append("<li><b>AVERAGE TIME</b>: the average execution time in milliseconds of this process</li>");
+        strb.append("<li><b>THROUGHPUT/SEC</b>: The amount of processes that were finished during 1 second. <br/>Especially interesting when using threads, because the average time should remain more or less equal, while the throughput should rise.</li>");
+        strb.append("<li><b>THROUGHPUT/HOUR</b>: Same as above, but now for one hour.</li>");
+        strb.append("</ul>");
     }
 
     public void addBenchmarkResult(String title, BenchmarkResult benchmarkResult) {
@@ -75,7 +88,9 @@ public class BenchmarkOuput {
 
             strb.append("<td align='center'>" + benchmarkResult.getNrOfExecutions(process) + "</td>");
             strb.append("<td>" + benchmarkResult.getTotalTime(process) + "</td>");
-            strb.append("<td>" + benchmarkResult.getAverage(process) + "</td>");
+            
+            double average = benchmarkResult.getAverage(process);
+            strb.append("<td>" + (average > 0 ? average : "not-available") + "</td>");
             strb.append("<td align='right'>" + benchmarkResult.getThroughputPerSecond(process) + "</td>");
             strb.append("<td align='right'>" + benchmarkResult.getThroughputPerHour(process) + "</td>");
 
@@ -83,7 +98,6 @@ public class BenchmarkOuput {
         }
 
         strb.append("</table>");
-
 
         if (benchmarkResult.processesRandomized()) {
             strb.append("<br/>");
@@ -99,12 +113,41 @@ public class BenchmarkOuput {
     }
 
     /**
-     * Method name says it all!
+     * Method name says it all
      */
-    public void generateChartOfPreviousAddedBenchmarkResults() {
+    public void generateChartOfPreviousAddedBenchmarkResults(boolean randomizedBenchmarkResults) {
         strb.append("<h4>Result chart</h4>");
 
-        // Create dataset for chart
+        if (randomizedBenchmarkResults) {
+        	generateRandomizedBenchmarkBarChart();
+        } else {
+        	generateSequentialBenchmarkLineChart();
+        	generateSequentialBenchmarkThroughputCharts();        	
+        }
+
+        // Empty the previous results
+        results.clear();
+    }
+    
+    protected void generateRandomizedBenchmarkBarChart() {
+		// Create dataset for chart
+    	HashMap<String, HashMap<Integer, Double>> data = new HashMap<String, HashMap<Integer, Double>>(); // map<processName, map<nrOfThreads, throughput time>>
+		for (BenchmarkResult benchmarkResult : results) {
+			for (String process : benchmarkResult.getProcesses()) {
+				if (data.get(process) == null) {
+					data.put(process, new HashMap<Integer, Double>());
+				}
+				data.get(process).put(benchmarkResult.getNrOfThreads(), benchmarkResult.getThroughputPerSecond(process));
+			}
+		}
+
+        JFreeChart chart = generateBarChart(data, "Threads", "Throughput (# processes / second)");
+        String chartFileName = writeChartToImageFile(chart);
+        strb.append("<img src=" + chartFileName + "/>");
+	}
+
+	protected void generateSequentialBenchmarkLineChart() {
+		// Create dataset for chart
         HashMap<String, HashMap<Integer, Double>> data = new HashMap<String, HashMap<Integer, Double>>(); // map<processName, map<nrOfThreads, avg time>>
         for (BenchmarkResult benchmarkResult : results) {
             for (String process : benchmarkResult.getProcesses()) {
@@ -115,33 +158,33 @@ public class BenchmarkOuput {
             }
         }
 
-
         JFreeChart chart = null;
         if (data.size() == 1) { // only 1 series -> barchart
-            chart = generateBarChart(data);
+            chart = generateBarChart(data, "Threads", "avg time(ms)");
         } else {
-            chart = generateLineChart(data);
+            chart = generateLineChart(data, "Threads", "avg time(ms)");
         }
-
-        // Write image
-        FileOutputStream fos = null;
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss_SSS");
-        String chartFileName = "chart-" + dateFormat.format(new Date()) + ".png";
-        try {
-            fos = new FileOutputStream(new File(folderName + "/" + chartFileName));
-            ChartUtilities.writeChartAsPNG(fos, chart, 800, 400);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-        // Include image in html
+        String chartFileName = writeChartToImageFile(chart);
         strb.append("<img src=" + chartFileName + "/>");
+	}
+	
+	protected void generateSequentialBenchmarkThroughputCharts() {
+		HashMap<String, HashMap<Integer, Double>> data = new HashMap<String, HashMap<Integer, Double>>(); // map<processName, map<nrOfThreads, throughput time>>
+		for (BenchmarkResult benchmarkResult : results) {
+			for (String process : benchmarkResult.getProcesses()) {
+				if (data.get(process) == null) {
+					data.put(process, new HashMap<Integer, Double>());
+				}
+				data.get(process).put(benchmarkResult.getNrOfThreads(), benchmarkResult.getThroughputPerSecond(process));
+			}
+		}
 
-        // Empty the previous results
-        results.clear();
-    }
+		JFreeChart chart = generateLineChart(data, "Threads", "Throughput (# processes / second");
+		String chartFileName = writeChartToImageFile(chart);
+		strb.append("<img src=" + chartFileName + "/>");
+	}
 
-    protected JFreeChart generateLineChart(HashMap<String, HashMap<Integer, Double>> data) {
+    protected JFreeChart generateLineChart(HashMap<String, HashMap<Integer, Double>> data, String xAxis, String yAxis) {
         XYSeriesCollection dataset = new XYSeriesCollection();
         for (String process : data.keySet()) {
             HashMap<Integer, Double> processData = data.get(process);
@@ -155,8 +198,8 @@ public class BenchmarkOuput {
         // Generate chart
         final JFreeChart chart = ChartFactory.createXYLineChart(
                 "",                       // chart title
-                "Threads",                // x axis label
-                "avg time (ms)",          // y axis label
+                xAxis,                // x axis label
+                yAxis,          // y axis label
                 dataset,                  // data
                 PlotOrientation.VERTICAL,
                 true,                     // include legend
@@ -182,8 +225,21 @@ public class BenchmarkOuput {
 
         return chart;
     }
+    
+	private String writeChartToImageFile(JFreeChart chart) {
+        FileOutputStream fos = null;
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss_SSS");
+        String chartFileName = "chart-" + dateFormat.format(new Date()) + ".png";
+        try {
+            fos = new FileOutputStream(new File(folderName + "/" + chartFileName));
+            ChartUtilities.writeChartAsPNG(fos, chart, 1200, 800);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+		return chartFileName;
+	}
 
-    protected JFreeChart generateBarChart(HashMap<String, HashMap<Integer, Double>> data) {
+    protected JFreeChart generateBarChart(HashMap<String, HashMap<Integer, Double>> data, String xAxis, String yAxis) {
         DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
         for (String process : data.keySet()) {
@@ -195,8 +251,8 @@ public class BenchmarkOuput {
 
         JFreeChart chart = ChartFactory.createBarChart(
                 "",
-                "Threads",
-                "acg time (ms)",
+                xAxis,
+                yAxis,
                 dataset,
                 PlotOrientation.VERTICAL,
                 true,

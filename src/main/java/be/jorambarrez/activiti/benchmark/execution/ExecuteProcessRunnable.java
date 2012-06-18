@@ -8,27 +8,27 @@ import org.activiti.engine.task.Task;
 
 /**
  * {@link Runnable} that starts a process and completes all tasks in it,
- * untill the process is finished.
+ * until the process is finished.
  *
  * @author Frederik Heremans
+ * @author Joram Barrez, mostly removing Fred's stuff.
  */
 public class ExecuteProcessRunnable implements Runnable {
 
     private String processInstanceKey;
     private ProcessEngine processEngine;
-    private ExecutionTime executionTime;
+    private long duration;
     
-    public ExecuteProcessRunnable(String processInstanceKey, ProcessEngine processEngine, ExecutionTime executionTime) {
+    public ExecuteProcessRunnable(String processInstanceKey, ProcessEngine processEngine) {
         this.processInstanceKey = processInstanceKey;
         this.processEngine = processEngine;
-        this.executionTime = executionTime;
     }
 
     public void run() {
         long processStartTime = System.currentTimeMillis();
         ProcessInstance processInstance = processEngine.getRuntimeService().startProcessInstanceByKey(processInstanceKey);
         
-        long duration = System.currentTimeMillis() - processStartTime; 
+        duration = System.currentTimeMillis() - processStartTime; 
         
         if(!processInstance.isEnded())
         {
@@ -52,8 +52,9 @@ public class ExecuteProcessRunnable implements Runnable {
                     .list();
            }
         }
-        
-        // Record the result
-        executionTime.addTime(duration);        
+    }
+    
+    public long getDuration() {
+    	return duration;
     }
 }

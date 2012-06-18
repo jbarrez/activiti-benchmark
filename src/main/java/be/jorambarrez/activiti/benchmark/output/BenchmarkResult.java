@@ -16,7 +16,8 @@ public class BenchmarkResult {
 
     private int nrOfThreads;
 	private Set<String> processes;
-	private Map<String, Long> totalTimeMap;
+	private Map<String, Long> processInstanceTimingsMap;
+	private Map<String, Long> processtotalTimeMap;
 	private Map<String, Integer> nrOfExecutionsMap;
 
     private boolean processesRandomized;
@@ -25,14 +26,22 @@ public class BenchmarkResult {
 	public BenchmarkResult(int nrOfThreads) {
         this.nrOfThreads = nrOfThreads;
 		this.processes = new TreeSet<String>();
-		this.totalTimeMap = new HashMap<String, Long>();
+		this.processInstanceTimingsMap = new HashMap<String, Long>();
+		this.processtotalTimeMap = new HashMap<String, Long>();
 		this.nrOfExecutionsMap = new HashMap<String, Integer>();
 	}
 	
-	public void addProcessMeasurement(String process, 
-			Integer nrOfExecutions, Long measurement) {
+	public void addProcessInstanceMeasurement(String process, Long measurement) {
+		if (!processInstanceTimingsMap.containsKey(process)) {
+			processInstanceTimingsMap.put(process, measurement);
+		}
+		Long oldValue = processInstanceTimingsMap.get(process);
+		processInstanceTimingsMap.put(process, oldValue + measurement);
+	}
+	
+	public void addTotalTimeMeasurementForProcess(String process, Integer nrOfExecutions, Long measurement) {
 		processes.add(process);
-		totalTimeMap.put(process, measurement);
+		processtotalTimeMap.put(process, measurement);
 		nrOfExecutionsMap.put(process, nrOfExecutions);
 	}
 	
@@ -41,7 +50,7 @@ public class BenchmarkResult {
 	}
 	
 	public long getTotalTime(String process) {
-		return totalTimeMap.get(process);
+		return processtotalTimeMap.get(process);
 	}
 	
 	public int getNrOfExecutions(String process) {
@@ -49,17 +58,21 @@ public class BenchmarkResult {
 	}
 
     public double getAverage(String process) {
-        double average = (double) getTotalTime(process) / (double) getNrOfExecutions(process);
+    	if (!processInstanceTimingsMap.containsKey(process)) {
+    		return -1;
+    	}
+    	
+    	double average = (double) processInstanceTimingsMap.get(process) / (double) getNrOfExecutions(process);
         return Math.round(average * 100.0) / 100.0; // round on 2 nrs
     }
 
     public double getThroughputPerSecond(String process) {
-        double throughput = 1000.0 / getAverage(process);
+        double throughput = getNrOfExecutions(process) / ((double) processtotalTimeMap.get(process) / 1000.0);
         return Math.round(throughput * 100.0) / 100.0; // round on 2 nrs
     }
 
     public double getThroughputPerHour(String process) {
-        double throughput = 3600000.0 / getAverage(process);
+    	double throughput = getNrOfExecutions(process) / ((double) processtotalTimeMap.get(process) / 3600000.0);
         return Math.round(throughput * 100.0) / 100.0; // round on 2 nrs
     }
 
