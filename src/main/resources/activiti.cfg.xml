@@ -25,7 +25,7 @@
         <property name="databaseSchemaUpdate" value="true" />
         <property name="jobExecutorActivate" value="false" />
 
-        <property name="idBlockSize" value="5000" />
+        <property name="idBlockSize" value="50000" />
     </bean>
 
 </beans>

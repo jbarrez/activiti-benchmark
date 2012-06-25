@@ -1,20 +1,19 @@
 package be.jorambarrez.activiti.benchmark.execution;
 
-import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
-import be.jorambarrez.activiti.benchmark.util.Utils;
-import org.activiti.engine.ProcessEngine;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
+import be.jorambarrez.activiti.benchmark.util.Utils;
+
 public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecution {
 
     protected int nrOfWorkerThreads;
 
-    public ThreadPooledBenchmarkExecution(ProcessEngine processEngine, String[] processes) {
-        super(processEngine, processes);
+    public ThreadPooledBenchmarkExecution(String[] processes) {
+        super(processes);
     }
 
     protected abstract ExecutorService getExecutorService();
@@ -33,7 +32,7 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
 
             long allProcessesStart = System.currentTimeMillis();
             for (int i = 0; i < nrOfProcessExecutions; i++) {
-            	ExecuteProcessRunnable executeProcessRunnable = new ExecuteProcessRunnable(currentProcess, processEngine);
+            	ExecuteProcessRunnable executeProcessRunnable = new ExecuteProcessRunnable(currentProcess, ProcessEngineHolder.getInstance());
             	processExecutions.add(executeProcessRunnable);
                 executorService.execute(executeProcessRunnable);
             }
@@ -74,7 +73,7 @@ public abstract class ThreadPooledBenchmarkExecution extends BasicBenchmarkExecu
 
         long allProcessesStart = System.currentTimeMillis();
         for (int i = 0; i < randomizedProcesses.length; i++) {
-        	  executorService.execute(new ExecuteProcessRunnable(randomizedProcesses[i], processEngine));
+        	  executorService.execute(new ExecuteProcessRunnable(randomizedProcesses[i], ProcessEngineHolder.getInstance()));
         }
 
         try {

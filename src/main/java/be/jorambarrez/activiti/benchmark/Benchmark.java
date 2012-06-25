@@ -4,16 +4,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.activiti.engine.ProcessEngine;
-import org.activiti.engine.ProcessEngineConfiguration;
-import org.activiti.engine.impl.cfg.ProcessEngineConfigurationImpl;
-import org.activiti.engine.impl.interceptor.CommandInterceptor;
 import org.activiti.engine.impl.util.LogUtil;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 import be.jorambarrez.activiti.benchmark.execution.BasicBenchmarkExecution;
 import be.jorambarrez.activiti.benchmark.execution.BenchmarkExecution;
 import be.jorambarrez.activiti.benchmark.execution.FixedThreadPoolBenchmarkExecution;
+import be.jorambarrez.activiti.benchmark.execution.ProcessEngineHolder;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkOuput;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
 import be.jorambarrez.activiti.benchmark.profiling.ProfilingInterceptor;
@@ -30,7 +26,7 @@ public class Benchmark {
 		LogUtil.readJavaUtilLoggingConfigFromClasspath();
 	}
 
-	private static String[] PROCESSES = { 
+	public static String[] PROCESSES = { 
 		"process01", 
 		"process02",
 		"process03",
@@ -38,14 +34,16 @@ public class Benchmark {
 		"process05",
 		"process-usertask-01",
 		"process-usertask-02",
-		"process-usertask-03" 
+		"process-usertask-03",
+		"process-multi-instance-01"
 	};
 
 	private static int maxNrOfThreadsInThreadPool;
 
-	private static String historyValue;
-	private static String configurationValue;
-	private static boolean profiling;
+	public static String HISTORY_VALUE;
+	public static boolean HISTORY_ENABLED;
+	public static String CONFIGURATION_VALUE;
+	public static boolean PROFILING_ENABLED;
 
 	private static List<BenchmarkResult> fixedPoolSequentialResults = new ArrayList<BenchmarkResult>();
 	private static List<BenchmarkResult> fixedPoolRandomResults = new ArrayList<BenchmarkResult>();
@@ -58,17 +56,16 @@ public class Benchmark {
 			System.exit(1);
 		}
 
-		boolean historyEnabled = !historyValue.equals("none");
-		System.out.println("History enabled : " + historyEnabled);
+		Benchmark.HISTORY_ENABLED = !HISTORY_VALUE.equals("none");
+		System.out.println("History enabled : " + HISTORY_ENABLED);
 
 		int nrOfExecutions = Integer.valueOf(args[0]);
 		maxNrOfThreadsInThreadPool = Integer.valueOf(args[1]);
 
-		ProcessEngine processEngine = getProcessEngine(configurationValue, historyEnabled);
-		executeBenchmarks(processEngine, historyEnabled, nrOfExecutions, maxNrOfThreadsInThreadPool);
+		executeBenchmarks(nrOfExecutions, maxNrOfThreadsInThreadPool);
 		writeHtmlReport();
 
-		if (profiling) {
+		if (PROFILING_ENABLED) {
 			System.out.println();
 			System.out.println("Generating profile report");
 			System.out.println();
@@ -85,66 +82,29 @@ public class Benchmark {
 				+ ((System.currentTimeMillis() - start) / 1000L) + " seconds");
 	}
 
-	private static ProcessEngine getProcessEngine(String configuration, boolean historyEnabled) {
-		if (configuration.equals("default")) {
-			
-			System.out.println("Using DEFAULT config");
-			// Not doing the 'official way' here, but it is needed if we want
-			// the property resolving to work
-
-			ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("activiti.cfg.xml");
-			ProcessEngineConfiguration processEngineConfiguration = appCtx.getBean(ProcessEngineConfiguration.class);
-
-			System.out.println("[Process engine configuration info]:");
-			System.out.println("url : " + processEngineConfiguration.getJdbcUrl());
-			System.out.println("driver : " + processEngineConfiguration.getJdbcDriver());
-
-			if (profiling) {
-				List<CommandInterceptor> interceptors = new ArrayList<CommandInterceptor>();
-				interceptors.add(new ProfilingInterceptor());
-				((ProcessEngineConfigurationImpl) processEngineConfiguration)
-						.setCustomPreCommandInterceptorsTxRequired(interceptors);
-			}
-
-			return processEngineConfiguration.buildProcessEngine();
-		} else if (configuration.equals("spring")) {
-			System.out.println("Using SPRING config");
-			ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext("spring-context.xml");
-
-			if (profiling) {
-				throw new RuntimeException("Profiling is currently only possible in default configuration");
-			}
-
-			return appCtx.getBean(ProcessEngine.class);
-		}
-		throw new RuntimeException("Invalid config: only 'default' and 'spring' are supported");
-	}
-
-	private static void executeBenchmarks(ProcessEngine processEngine,
-			boolean historyEnabled, int nrOfProcessExecutions,
-			int maxNrOfThreadsInThreadPool) {
+	private static void executeBenchmarks(int nrOfProcessExecutions, int maxNrOfThreadsInThreadPool) {
 
 		// Deploy test processes
 		System.out.println("Deploying test processes");
 		for (String process : PROCESSES) {
-			processEngine.getRepositoryService().createDeployment()
+			ProcessEngineHolder.getInstance().getRepositoryService().createDeployment()
 					.addClasspathResource(process + ".bpmn20.xml").deploy();
 		}
 		System.out.println("Finished deploying test processes");
 
 		// Single thread benchmark
 		System.out.println(new Date() + " - benchmarking with one thread.");
-		BenchmarkExecution singleThreadBenchmark = new BasicBenchmarkExecution(processEngine, PROCESSES);
-		fixedPoolSequentialResults.add(singleThreadBenchmark.sequentialExecution(PROCESSES, nrOfProcessExecutions, historyEnabled));
-		fixedPoolRandomResults.add(singleThreadBenchmark.randomExecution(PROCESSES, nrOfProcessExecutions, historyEnabled));
+		BenchmarkExecution singleThreadBenchmark = new BasicBenchmarkExecution(PROCESSES);
+		fixedPoolSequentialResults.add(singleThreadBenchmark.sequentialExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
+		fixedPoolRandomResults.add(singleThreadBenchmark.randomExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
 
 		// Multiple threads - fixed pool benchmark
 		for (int nrOfWorkerThreads = 2; nrOfWorkerThreads <= maxNrOfThreadsInThreadPool; nrOfWorkerThreads++) {
 
 			System.out.println(new Date() + " - benchmarking with fixed threadpool of " + nrOfWorkerThreads + " threads.");
-			BenchmarkExecution fixedPoolBenchMark = new FixedThreadPoolBenchmarkExecution(processEngine, nrOfWorkerThreads, PROCESSES);
-			fixedPoolSequentialResults.add(fixedPoolBenchMark.sequentialExecution(PROCESSES, nrOfProcessExecutions, historyEnabled));
-			fixedPoolRandomResults.add(fixedPoolBenchMark.randomExecution(PROCESSES, nrOfProcessExecutions, historyEnabled));
+			BenchmarkExecution fixedPoolBenchMark = new FixedThreadPoolBenchmarkExecution(nrOfWorkerThreads, PROCESSES);
+			fixedPoolSequentialResults.add(fixedPoolBenchMark.sequentialExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
+			fixedPoolRandomResults.add(fixedPoolBenchMark.randomExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
 		}
 	}
 
@@ -196,30 +156,30 @@ public class Benchmark {
 					.println("No history config specified, using default value 'audit");
 			System.getProperties().put("history", "audit");
 		}
-		historyValue = (String) System.getProperties().get("history");
+		HISTORY_VALUE = (String) System.getProperties().get("history");
 
 		if (!System.getProperties().containsKey("config")) {
 			System.out.println("No config specified, using default");
 			System.getProperties().put("config", "default");
 		}
-		configurationValue = (String) System.getProperties().get("config");
+		CONFIGURATION_VALUE = (String) System.getProperties().get("config");
 
-		if (configurationValue != null && !configurationValue.equals("default")
-				&& !configurationValue.equals("spring")) {
+		if (CONFIGURATION_VALUE != null && !CONFIGURATION_VALUE.equals("default")
+				&& !CONFIGURATION_VALUE.equals("spring")) {
 			System.err.println("Invalid configuration option: only default|spring are currently supported");
 			return false;
 		}
 
-		if (historyValue != null && !historyValue.equals("none")
-				&& !historyValue.equals("activity")
-				&& !historyValue.equals("audit")
-				&& !historyValue.equals("full")) {
+		if (HISTORY_VALUE != null && !HISTORY_VALUE.equals("none")
+				&& !HISTORY_VALUE.equals("activity")
+				&& !HISTORY_VALUE.equals("audit")
+				&& !HISTORY_VALUE.equals("full")) {
 			System.err.println("Invalid history option: only none|activity|audit|full are currently supported");
 			return false;
 		}
 
 		if (System.getProperties().containsKey("profiling")) {
-			profiling = true;
+			PROFILING_ENABLED = true;
 		}
 
 		try {

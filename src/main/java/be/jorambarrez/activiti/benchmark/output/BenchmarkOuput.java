@@ -232,7 +232,7 @@ public class BenchmarkOuput {
         String chartFileName = "chart-" + dateFormat.format(new Date()) + ".png";
         try {
             fos = new FileOutputStream(new File(folderName + "/" + chartFileName));
-            ChartUtilities.writeChartAsPNG(fos, chart, 1200, 800);
+            ChartUtilities.writeChartAsPNG(fos, chart, 1200, 1200);
         } catch (IOException e) {
             e.printStackTrace();
         }

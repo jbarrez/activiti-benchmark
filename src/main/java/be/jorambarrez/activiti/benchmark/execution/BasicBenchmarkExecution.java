@@ -3,13 +3,17 @@ package be.jorambarrez.activiti.benchmark.execution;
 import java.util.Date;
 import java.util.List;
 
+import org.activiti.engine.ActivitiException;
 import org.activiti.engine.HistoryService;
-import org.activiti.engine.ProcessEngine;
-import org.activiti.engine.RepositoryService;
 import org.activiti.engine.RuntimeService;
 import org.activiti.engine.history.HistoricProcessInstance;
-import org.activiti.engine.repository.Deployment;
+import org.activiti.engine.impl.ProcessEngineImpl;
+import org.activiti.engine.impl.db.DbSqlSession;
+import org.activiti.engine.impl.interceptor.Command;
+import org.activiti.engine.impl.interceptor.CommandContext;
+import org.activiti.engine.runtime.ProcessInstance;
 
+import be.jorambarrez.activiti.benchmark.Benchmark;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
 import be.jorambarrez.activiti.benchmark.util.Utils;
 
@@ -21,20 +25,14 @@ import be.jorambarrez.activiti.benchmark.util.Utils;
  */
 public class BasicBenchmarkExecution implements BenchmarkExecution {
 
-    protected ProcessEngine processEngine;
-
     protected String[] processes;
-
-    protected RuntimeService runtimeService;
 
     protected long countBefore;
 
     protected long countAfter;
 
-    public BasicBenchmarkExecution(ProcessEngine processEngine, String[] processes) {
-        this.processEngine = processEngine;
+    public BasicBenchmarkExecution(String[] processes) {
         this.processes = processes;
-        this.runtimeService = processEngine.getRuntimeService();
     }
 
     public BenchmarkResult sequentialExecution(String[] processes, int nrOfProcessExecutions, boolean history) {
@@ -48,7 +46,7 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
             long allProcessesStart = System.currentTimeMillis();
                        
             for (int i = 0; i < nrOfProcessExecutions; i++) {
-                ExecuteProcessRunnable executeProcessRunnable = new ExecuteProcessRunnable(process, processEngine);
+                ExecuteProcessRunnable executeProcessRunnable = new ExecuteProcessRunnable(process, ProcessEngineHolder.getInstance());
                 executeProcessRunnable.run();
                 result.addProcessInstanceMeasurement(process, executeProcessRunnable.getDuration());
             }
@@ -77,7 +75,7 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
         long allProcessesStart = System.currentTimeMillis();
 
         for (String randomProcess : randomizedProcesses) {
-        	 new ExecuteProcessRunnable(randomProcess, processEngine).run();
+        	 new ExecuteProcessRunnable(randomProcess, ProcessEngineHolder.getInstance()).run();
         }
 
         long allProcessesEnd = System.currentTimeMillis();
@@ -99,41 +97,33 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
 
 
     protected void cleanAndDeploy() {
-        System.out.println(new Date() + " : Removing deployments");
-
-        RepositoryService repositoryService = processEngine.getRepositoryService();
-        List<Deployment> deployments = repositoryService.createDeploymentQuery().list();
-        for (Deployment deployment : deployments) {
-            repositoryService.deleteDeployment(deployment.getId(), true);
-        }
-
-        HistoryService historyService = processEngine.getHistoryService();
-        System.out.println(new Date() + " : Removing " + historyService.createHistoricProcessInstanceQuery().count() + " historic process instances");
-        List<HistoricProcessInstance> processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
-        int processesDeleted = 0;
-        while (processInstances.size() > 0) {
-            for (HistoricProcessInstance historicProcessInstance : processInstances) {
-                historyService.deleteHistoricProcessInstance(historicProcessInstance.getId());
-                processesDeleted++;
-            }
-
-            if (processesDeleted % 500 == 0) {
-                System.out.println("Deleted " + processesDeleted + " processes");
-            }
-
-            processInstances = historyService.createHistoricProcessInstanceQuery().listPage(0, 100);
-        }
-
-        long count = countNrOfEndedProcesses();
-        if (count != 0) {
-            throw new RuntimeException("Recreating DB schema failed: found " + count + " historic process instances");
-        }
-
-        System.out.println(new Date() + " : Deploying test processes");
-        for (String process : processes) {
-            processEngine.getRepositoryService().createDeployment()
-                    .addClasspathResource(process + ".bpmn20.xml").deploy();
-        }
+    	
+        System.out.println(new Date() + " : Recreating DB schema");
+         
+		((ProcessEngineImpl) ProcessEngineHolder.getInstance()).getProcessEngineConfiguration()
+				.getCommandExecutorTxRequired().execute(new Command<Object>() {
+					public Object execute(CommandContext commandContext) {
+						DbSqlSession dbSqlSession = commandContext.getSession(DbSqlSession.class);
+						dbSqlSession.dbSchemaDrop();
+						dbSqlSession.dbSchemaCreate();
+						return null;
+					}
+				});
+		
+		System.out.println("Rebooting process engine");
+		ProcessEngineHolder.rebootProcessEngine();
+		
+		System.out.println("Redeploying test processes");
+		for (String process : Benchmark.PROCESSES) {
+			ProcessEngineHolder.getInstance().getRepositoryService().createDeployment()
+					.addClasspathResource(process + ".bpmn20.xml").deploy();
+		}
+		
+		try {
+			Thread.sleep(10000L);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
     }
 
     protected void countProcessesBeforeBenchmark() {
@@ -158,7 +148,61 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
      * Counts the nr of ended processes.
      */
     private long countNrOfEndedProcesses() {
-        return processEngine.getHistoryService().createHistoricProcessInstanceQuery().finished().count();
+        return ProcessEngineHolder.getInstance().getHistoryService().createHistoricProcessInstanceQuery().finished().count();
+    }
+    
+    static class DeleteHistoricProcessInstancesRunnable implements Runnable {
+    	
+    	private HistoryService historyService;
+    	private long start;
+    	private long pageSize;
+    	
+    	public DeleteHistoricProcessInstancesRunnable(HistoryService historyService, long start, long pageSize) {
+    		this.historyService = historyService;
+    		this.start = start;
+    		this.pageSize = pageSize;
+    	}
+    	
+    	public void run() {
+    		List<HistoricProcessInstance> historicProcessInstances = historyService.createHistoricProcessInstanceQuery().listPage((int)start, (int)pageSize);
+    		int counter = 0;
+    		for (HistoricProcessInstance historicProcessInstance : historicProcessInstances) {
+    			try {
+    				historyService.deleteHistoricProcessInstance(historicProcessInstance.getId());
+    				counter++;
+    			} catch (ActivitiException e) {
+    				if (!e.getMessage().contains("No historic process instance found")) {
+    					throw new RuntimeException(e);
+    				}
+    			}
+    		}
+    		 System.out.println(new Date() + " : Deleted " + counter + " historic process instances");
+    	}
+    	
+    }
+    
+  static class DeleteProcessInstancesRunnable implements Runnable {
+    	
+    	private RuntimeService runtimeService;
+    	private long start;
+    	private long pageSize;
+    	
+    	public DeleteProcessInstancesRunnable(RuntimeService runtimeService, long start, long pageSize) {
+    		this.runtimeService = runtimeService;
+    		this.start = start;
+    		this.pageSize = pageSize;
+    	}
+    	
+    	public void run() {
+    		List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery().listPage((int)start, (int)pageSize);
+    		int counter = 0;
+    		for (ProcessInstance processInstance : processInstances) {
+    			runtimeService.deleteProcessInstance(processInstance.getId(), null);
+    			counter++;
+    		}
+    		System.out.print(new Date() + " : Deleted " + counter + " process instances");
+    	}
+    	
     }
 
 }
