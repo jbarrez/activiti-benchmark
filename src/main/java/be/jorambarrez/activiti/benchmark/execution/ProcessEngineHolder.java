@@ -42,7 +42,7 @@ public class ProcessEngineHolder {
 				List<CommandInterceptor> interceptors = new ArrayList<CommandInterceptor>();
 				interceptors.add(new ProfilingInterceptor());
 				((ProcessEngineConfigurationImpl) processEngineConfiguration)
-						.setCustomPreCommandInterceptorsTxRequired(interceptors);
+						.setCustomPreCommandInterceptors(interceptors);
 			}
 
 			return processEngineConfiguration.buildProcessEngine();

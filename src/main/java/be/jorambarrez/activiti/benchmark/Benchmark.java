@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-import org.activiti.engine.impl.util.LogUtil;
-
 import be.jorambarrez.activiti.benchmark.execution.BasicBenchmarkExecution;
 import be.jorambarrez.activiti.benchmark.execution.BenchmarkExecution;
 import be.jorambarrez.activiti.benchmark.execution.FixedThreadPoolBenchmarkExecution;
@@ -21,10 +19,6 @@ import be.jorambarrez.activiti.benchmark.profiling.ProfilingLogParser;
  * @author jbarrez
  */
 public class Benchmark {
-
-	static {
-		LogUtil.readJavaUtilLoggingConfigFromClasspath();
-	}
 
 	public static String[] PROCESSES = { 
 		"process01", 

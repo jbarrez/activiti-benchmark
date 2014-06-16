@@ -19,9 +19,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Field;
 
+import org.activiti.engine.impl.interceptor.AbstractCommandInterceptor;
 import org.activiti.engine.impl.interceptor.Command;
-import org.activiti.engine.impl.interceptor.CommandInterceptor;
-import org.activiti.engine.impl.util.ClassNameUtil;
+import org.activiti.engine.impl.interceptor.CommandConfig;
 
 /**
  * A simple profiling interceptor, written just for the fun of it.
@@ -34,7 +34,7 @@ import org.activiti.engine.impl.util.ClassNameUtil;
  * 
  * @author Joram Barrez
  */
-public class ProfilingInterceptor extends CommandInterceptor {
+public class ProfilingInterceptor extends AbstractCommandInterceptor {
 	
 	public static PrintWriter fileWriter;
 	
@@ -50,11 +50,12 @@ public class ProfilingInterceptor extends CommandInterceptor {
 		}
 	}
 
-	public <T> T execute(Command<T> command) {
+	@Override
+	public <T> T execute(CommandConfig config, Command<T> command) {
 		long start = System.currentTimeMillis();
-		T result = next.execute(command);
+		T result = next.execute(config, command);
 		long end = System.currentTimeMillis();
-		fileWriter.println(ClassNameUtil.getClassNameWithoutPackage(command) + ":"
+		fileWriter.println(command.getClass() + ":"
 				+ (end - start) + ":" + readMemberFields(command));
 		return result;
 	}
