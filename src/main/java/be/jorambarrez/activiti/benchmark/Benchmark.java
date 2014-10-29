@@ -104,7 +104,7 @@ public class Benchmark {
 
 	private static void writeHtmlReport() {
 		BenchmarkOuput output = new BenchmarkOuput();
-		output.start("Activiti 5.10-SNAPSHOT basic benchmark results");
+		output.start("Activiti " + ProcessEngineHolder.getInstance().VERSION + " basic benchmark results");
 
 		for (int i = 1; i <= maxNrOfThreadsInThreadPool; i++) {
 			output.addBenchmarkResult("Fixed thread pool (" + i + "threads), sequential", fixedPoolSequentialResults.get(i - 1));

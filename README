@@ -5,3 +5,7 @@ Run 'mvn clean package shade:shade' to build the executable jar.
 Execute the jar to get more info about the command line params.
 
 You can pass db connection params as system properties: -DjdbcUrl | -DjdbcDriver | -DjdbcUsername | -DjdbcPassword
+
+eg:
+
+java -DjdbcUrl=jdbc:mysql://localhost:3306/activiti_benchmark?characterEncoding=UTF-8 -DjdbcUsername=activiti -DjdbcPassword=activiti -DjdbcDriver=com.mysql.jdbc.Driver -Dhistory=none -Dconfig=spring -jar activiti-basic-benchmark.jar 2500 16
