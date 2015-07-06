@@ -1,17 +1,15 @@
 package be.jorambarrez.activiti.benchmark;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-
 import be.jorambarrez.activiti.benchmark.execution.BasicBenchmarkExecution;
 import be.jorambarrez.activiti.benchmark.execution.BenchmarkExecution;
 import be.jorambarrez.activiti.benchmark.execution.FixedThreadPoolBenchmarkExecution;
 import be.jorambarrez.activiti.benchmark.execution.ProcessEngineHolder;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkOuput;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
-import be.jorambarrez.activiti.benchmark.profiling.ProfilingInterceptor;
-import be.jorambarrez.activiti.benchmark.profiling.ProfilingLogParser;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Main class that contains the logic to execute the benchmark.
@@ -29,7 +27,9 @@ public class Benchmark {
 		"process-usertask-01",
 		"process-usertask-02",
 		"process-usertask-03",
-		"process-multi-instance-01"
+		"process-multi-instance-01",
+		"process-variables-servicetask01",
+		"process-variables-servicetask02"
 	};
 
 	private static int maxNrOfThreadsInThreadPool;
@@ -37,7 +37,7 @@ public class Benchmark {
 	public static String HISTORY_VALUE;
 	public static boolean HISTORY_ENABLED;
 	public static String CONFIGURATION_VALUE;
-	public static boolean PROFILING_ENABLED;
+	public static boolean FIXED_NR_THREADPOOLS;
 
 	private static List<BenchmarkResult> fixedPoolSequentialResults = new ArrayList<BenchmarkResult>();
 	private static List<BenchmarkResult> fixedPoolRandomResults = new ArrayList<BenchmarkResult>();
@@ -56,20 +56,10 @@ public class Benchmark {
 		int nrOfExecutions = Integer.valueOf(args[0]);
 		maxNrOfThreadsInThreadPool = Integer.valueOf(args[1]);
 
-		executeBenchmarks(nrOfExecutions, maxNrOfThreadsInThreadPool);
-		writeHtmlReport();
-
-		if (PROFILING_ENABLED) {
-			System.out.println();
-			System.out.println("Generating profile report");
-			System.out.println();
-			
-			// flushing writer and sleeping a bit, just to be sure
-			ProfilingInterceptor.fileWriter.flush();
-			Thread.sleep(5000L);
-			
-			ProfilingLogParser profilingLogParser = new ProfilingLogParser();
-			profilingLogParser.execute();
+		if (FIXED_NR_THREADPOOLS) {
+			executeFixedThreadPoolBenchmark(nrOfExecutions, maxNrOfThreadsInThreadPool);
+		} else {
+			executeBenchmarks(nrOfExecutions, maxNrOfThreadsInThreadPool);
 		}
 
 		System.out.println("Benchmark completed. Ran for "
@@ -100,6 +90,8 @@ public class Benchmark {
 			fixedPoolSequentialResults.add(fixedPoolBenchMark.sequentialExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
 			fixedPoolRandomResults.add(fixedPoolBenchMark.randomExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
 		}
+
+		writeHtmlReport();
 	}
 
 	private static void writeHtmlReport() {
@@ -116,6 +108,29 @@ public class Benchmark {
 		}
 		output.generateChartOfPreviousAddedBenchmarkResults(true);
 
+		output.writeOut();
+	}
+
+	private static void executeFixedThreadPoolBenchmark(int nrOfProcessExecutions, int nrOfThreadInThreadPool) {
+
+		// Deploy test processes
+		System.out.println("Deploying test processes");
+		for (String process : PROCESSES) {
+			ProcessEngineHolder.getInstance().getRepositoryService().createDeployment()
+					.addClasspathResource(process + ".bpmn20.xml").deploy();
+		}
+		System.out.println("Finished deploying test processes");
+
+		System.out.println(new Date() + " - benchmarking with fixed threadpool of " + nrOfThreadInThreadPool + " threads.");
+		BenchmarkExecution fixedPoolBenchMark = new FixedThreadPoolBenchmarkExecution(nrOfThreadInThreadPool, PROCESSES);
+		fixedPoolSequentialResults.add(fixedPoolBenchMark.sequentialExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
+		fixedPoolRandomResults.add(fixedPoolBenchMark.randomExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
+
+		// Output
+		BenchmarkOuput output = new BenchmarkOuput();
+		output.start("Activiti " + ProcessEngineHolder.getInstance().VERSION + " basic benchmark results - FIXED number of threadpools");
+		output.addBenchmarkResult("Fixed thread pool (" + nrOfThreadInThreadPool + "threads), sequential", fixedPoolSequentialResults.get(0));
+		output.addBenchmarkResult("Fixed thread pool (" + nrOfThreadInThreadPool + "threads), randomized", fixedPoolRandomResults.get(0));
 		output.writeOut();
 	}
 
@@ -172,8 +187,9 @@ public class Benchmark {
 			return false;
 		}
 
-		if (System.getProperties().containsKey("profiling")) {
-			PROFILING_ENABLED = true;
+		if (System.getProperties().containsKey("fixedNrOfThreadPools")) {
+			FIXED_NR_THREADPOOLS = true;
+			System.out.println("FIXED number of threadpools enabled");
 		}
 
 		try {

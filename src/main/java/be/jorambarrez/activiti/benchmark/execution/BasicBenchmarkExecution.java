@@ -99,9 +99,11 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
     protected void cleanAndDeploy() {
     	
         System.out.println(new Date() + " : Recreating DB schema");
-         
+
 		((ProcessEngineImpl) ProcessEngineHolder.getInstance()).getProcessEngineConfiguration()
-				.getCommandExecutor().execute(new Command<Object>() {
+//                .getCommandExecutorTxRequiresNew() // For 5.10
+				.getCommandExecutor()
+                .execute(new Command<Object>() {
 					public Object execute(CommandContext commandContext) {
 						DbSqlSession dbSqlSession = commandContext.getSession(DbSqlSession.class);
 						dbSqlSession.dbSchemaDrop();
