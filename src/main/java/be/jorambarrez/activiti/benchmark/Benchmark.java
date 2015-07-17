@@ -6,6 +6,7 @@ import be.jorambarrez.activiti.benchmark.execution.FixedThreadPoolBenchmarkExecu
 import be.jorambarrez.activiti.benchmark.execution.ProcessEngineHolder;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkOuput;
 import be.jorambarrez.activiti.benchmark.output.BenchmarkResult;
+import be.jorambarrez.activiti.benchmark.util.Utils;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,7 +20,7 @@ import java.util.List;
 public class Benchmark {
 
 	public static String[] PROCESSES = { 
-		"process01", 
+		"process01",
 		"process02",
 		"process03",
 		"process04",
@@ -37,7 +38,6 @@ public class Benchmark {
 	public static String HISTORY_VALUE;
 	public static boolean HISTORY_ENABLED;
 	public static String CONFIGURATION_VALUE;
-	public static boolean FIXED_NR_THREADPOOLS;
 
 	private static List<BenchmarkResult> fixedPoolSequentialResults = new ArrayList<BenchmarkResult>();
 	private static List<BenchmarkResult> fixedPoolRandomResults = new ArrayList<BenchmarkResult>();
@@ -56,25 +56,15 @@ public class Benchmark {
 		int nrOfExecutions = Integer.valueOf(args[0]);
 		maxNrOfThreadsInThreadPool = Integer.valueOf(args[1]);
 
-		if (FIXED_NR_THREADPOOLS) {
-			executeFixedThreadPoolBenchmark(nrOfExecutions, maxNrOfThreadsInThreadPool);
-		} else {
-			executeBenchmarks(nrOfExecutions, maxNrOfThreadsInThreadPool);
-		}
+		executeBenchmarks(nrOfExecutions, maxNrOfThreadsInThreadPool);
 
-		System.out.println("Benchmark completed. Ran for "
-				+ ((System.currentTimeMillis() - start) / 1000L) + " seconds");
+		System.out.println("Benchmark completed. Ran for " + ((System.currentTimeMillis() - start) / 1000L) + " seconds");
 	}
 
 	private static void executeBenchmarks(int nrOfProcessExecutions, int maxNrOfThreadsInThreadPool) {
 
 		// Deploy test processes
-		System.out.println("Deploying test processes");
-		for (String process : PROCESSES) {
-			ProcessEngineHolder.getInstance().getRepositoryService().createDeployment()
-					.addClasspathResource(process + ".bpmn20.xml").deploy();
-		}
-		System.out.println("Finished deploying test processes");
+		Utils.cleanAndRedeployTestProcesses();
 
 		// Single thread benchmark
 		System.out.println(new Date() + " - benchmarking with one thread.");
@@ -108,29 +98,6 @@ public class Benchmark {
 		}
 		output.generateChartOfPreviousAddedBenchmarkResults(true);
 
-		output.writeOut();
-	}
-
-	private static void executeFixedThreadPoolBenchmark(int nrOfProcessExecutions, int nrOfThreadInThreadPool) {
-
-		// Deploy test processes
-		System.out.println("Deploying test processes");
-		for (String process : PROCESSES) {
-			ProcessEngineHolder.getInstance().getRepositoryService().createDeployment()
-					.addClasspathResource(process + ".bpmn20.xml").deploy();
-		}
-		System.out.println("Finished deploying test processes");
-
-		System.out.println(new Date() + " - benchmarking with fixed threadpool of " + nrOfThreadInThreadPool + " threads.");
-		BenchmarkExecution fixedPoolBenchMark = new FixedThreadPoolBenchmarkExecution(nrOfThreadInThreadPool, PROCESSES);
-		fixedPoolSequentialResults.add(fixedPoolBenchMark.sequentialExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
-		fixedPoolRandomResults.add(fixedPoolBenchMark.randomExecution(PROCESSES, nrOfProcessExecutions, HISTORY_ENABLED));
-
-		// Output
-		BenchmarkOuput output = new BenchmarkOuput();
-		output.start("Activiti " + ProcessEngineHolder.getInstance().VERSION + " basic benchmark results - FIXED number of threadpools");
-		output.addBenchmarkResult("Fixed thread pool (" + nrOfThreadInThreadPool + "threads), sequential", fixedPoolSequentialResults.get(0));
-		output.addBenchmarkResult("Fixed thread pool (" + nrOfThreadInThreadPool + "threads), randomized", fixedPoolRandomResults.get(0));
 		output.writeOut();
 	}
 
@@ -185,11 +152,6 @@ public class Benchmark {
 				&& !HISTORY_VALUE.equals("full")) {
 			System.err.println("Invalid history option: only none|activity|audit|full are currently supported");
 			return false;
-		}
-
-		if (System.getProperties().containsKey("fixedNrOfThreadPools")) {
-			FIXED_NR_THREADPOOLS = true;
-			System.out.println("FIXED number of threadpools enabled");
 		}
 
 		try {

@@ -1,5 +1,9 @@
 package be.jorambarrez.activiti.benchmark.util;
 
+import be.jorambarrez.activiti.benchmark.Benchmark;
+import be.jorambarrez.activiti.benchmark.execution.ProcessEngineHolder;
+import org.activiti.engine.repository.Deployment;
+
 import java.util.Random;
 
 public class Utils {
@@ -26,6 +30,22 @@ public class Utils {
 		}
 		strb.deleteCharAt(strb.length() - 1);
 		return strb.toString();
+	}
+
+	public static void cleanAndRedeployTestProcesses() {
+
+		System.out.print("Removing deployments...   ");
+		for (Deployment deployment : ProcessEngineHolder.getInstance().getRepositoryService().createDeploymentQuery().list()) {
+			ProcessEngineHolder.getInstance().getRepositoryService().deleteDeployment(deployment.getId(), true);
+		}
+
+		System.out.print("Finished cleaning up. Deploying test processes...   ");
+		for (String process : Benchmark.PROCESSES) {
+			ProcessEngineHolder.getInstance().getRepositoryService().createDeployment()
+					.addClasspathResource(process + ".bpmn20.xml").deploy();
+		}
+		System.out.println("Finished deploying test processes");
+
 	}
 	
 }

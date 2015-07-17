@@ -41,7 +41,7 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
         BenchmarkResult result = new BenchmarkResult(1);
 
         for (String process : processes) {
-            
+
         	System.out.println(new Date() + " : [SEQ]Starting " + nrOfProcessExecutions + " of process " + process);
             long allProcessesStart = System.currentTimeMillis();
                        
@@ -49,9 +49,13 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
                 ExecuteProcessRunnable executeProcessRunnable = new ExecuteProcessRunnable(process, ProcessEngineHolder.getInstance());
                 executeProcessRunnable.run();
                 result.addProcessInstanceMeasurement(process, executeProcessRunnable.getDuration());
+                if (i%100 == 0) {
+                    System.out.println("Finished " + i + "/" + nrOfProcessExecutions);
+                }
             }
             
             long allProcessesEnd = System.currentTimeMillis();
+            System.out.println("Execution time = " + (allProcessesEnd - allProcessesStart) + " ms");
             result.addTotalTimeMeasurementForProcess(process, nrOfProcessExecutions, allProcessesEnd - allProcessesStart);
         }
 
@@ -97,30 +101,30 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
 
 
     protected void cleanAndDeploy() {
-    	
+
         System.out.println(new Date() + " : Recreating DB schema");
 
 		((ProcessEngineImpl) ProcessEngineHolder.getInstance()).getProcessEngineConfiguration()
 //                .getCommandExecutorTxRequiresNew() // For 5.10
 				.getCommandExecutor()
                 .execute(new Command<Object>() {
-					public Object execute(CommandContext commandContext) {
-						DbSqlSession dbSqlSession = commandContext.getSession(DbSqlSession.class);
-						dbSqlSession.dbSchemaDrop();
-						dbSqlSession.dbSchemaCreate();
-						return null;
-					}
-				});
-		
+                    public Object execute(CommandContext commandContext) {
+                        DbSqlSession dbSqlSession = commandContext.getSession(DbSqlSession.class);
+                        dbSqlSession.dbSchemaDrop();
+                        dbSqlSession.dbSchemaCreate();
+                        return null;
+                    }
+                });
+
 		System.out.println("Rebooting process engine");
 		ProcessEngineHolder.rebootProcessEngine();
-		
+
 		System.out.println("Redeploying test processes");
 		for (String process : Benchmark.PROCESSES) {
 			ProcessEngineHolder.getInstance().getRepositoryService().createDeployment()
 					.addClasspathResource(process + ".bpmn20.xml").deploy();
 		}
-		
+
 		try {
 			Thread.sleep(10000L);
 		} catch (InterruptedException e) {
@@ -154,17 +158,17 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
     }
     
     static class DeleteHistoricProcessInstancesRunnable implements Runnable {
-    	
+
     	private HistoryService historyService;
     	private long start;
     	private long pageSize;
-    	
+
     	public DeleteHistoricProcessInstancesRunnable(HistoryService historyService, long start, long pageSize) {
     		this.historyService = historyService;
     		this.start = start;
     		this.pageSize = pageSize;
     	}
-    	
+
     	public void run() {
     		List<HistoricProcessInstance> historicProcessInstances = historyService.createHistoricProcessInstanceQuery().listPage((int)start, (int)pageSize);
     		int counter = 0;
@@ -180,21 +184,21 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
     		}
     		 System.out.println(new Date() + " : Deleted " + counter + " historic process instances");
     	}
-    	
+
     }
-    
+
   static class DeleteProcessInstancesRunnable implements Runnable {
-    	
+
     	private RuntimeService runtimeService;
     	private long start;
     	private long pageSize;
-    	
+
     	public DeleteProcessInstancesRunnable(RuntimeService runtimeService, long start, long pageSize) {
     		this.runtimeService = runtimeService;
     		this.start = start;
     		this.pageSize = pageSize;
     	}
-    	
+
     	public void run() {
     		List<ProcessInstance> processInstances = runtimeService.createProcessInstanceQuery().listPage((int)start, (int)pageSize);
     		int counter = 0;
@@ -204,7 +208,7 @@ public class BasicBenchmarkExecution implements BenchmarkExecution {
     		}
     		System.out.print(new Date() + " : Deleted " + counter + " process instances");
     	}
-    	
+
     }
 
 }
